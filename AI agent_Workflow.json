@@ -1,0 +1,420 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -480,
+        -120
+      ],
+      "id": "6aefdb6d-ba3a-4e8e-accc-ff9fd386c146",
+      "name": "Telegram Trigger",
+      "webhookId": "60d6039f-73c8-4ba7-b8bb-35ccea77cb32",
+      "credentials": {
+        "telegramApi": {
+          "id": "h2ppST1CvB2AmYFA",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "c363b241-6347-4d56-a2fd-9b32f652aa33"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e3f49be8-a7db-4a5d-88ab-03ddf26f4caa",
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -220,
+        -120
+      ],
+      "id": "e6fc3c48-ca38-49e7-892b-71b93ee34447",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32915065-5449-4935-8422-90e16b57d313",
+              "name": "text",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        20,
+        -260
+      ],
+      "id": "71a9d44c-86ca-4d8c-af6b-98ca574ae6f3",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        40,
+        -20
+      ],
+      "id": "dd5165e5-ed3d-4390-b1d2-6ea0f8c306ae",
+      "name": "Telegram",
+      "webhookId": "fbd6d531-8c52-498f-9616-f478cdda2187",
+      "credentials": {
+        "telegramApi": {
+          "id": "h2ppST1CvB2AmYFA",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        220,
+        40
+      ],
+      "id": "581903b2-4d5d-490a-8c07-743cb6bf9c4b",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "fE08GsyeO0xfPLQz",
+          "name": "OpenAi account 6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "You are a helpful assistant. you also have access to Gmail-Send tool which allows you to write email and send them.you also have access to eventmaker tool to create thenew event and appointment. "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        260,
+        -260
+      ],
+      "id": "c1b63c13-b930-4436-bba9-d59ac30089a8",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        260,
+        -100
+      ],
+      "id": "230feb17-1971-4358-98ee-2fe43ac5bd0a",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "uO8Yn4HNU9txAwCJ",
+          "name": "OpenAi account 7"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Switch').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        680,
+        -260
+      ],
+      "id": "991a751e-89b2-4223-99c1-25f0cf9ff209",
+      "name": "Telegram1",
+      "webhookId": "cb4aaae5-2a21-4c6e-9199-31a8c10ab7cf",
+      "credentials": {
+        "telegramApi": {
+          "id": "h2ppST1CvB2AmYFA",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        480,
+        60
+      ],
+      "id": "70d32a0a-8b13-440c-ab36-db4470c1cc04",
+      "name": "Gmail-Send",
+      "webhookId": "7b54eee4-e89d-4f94-833b-68ce8277a292",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "3gJ8Xv91XlYNDsxh",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "CodeHelper",
+        "description": "Call this tool to convert the temperature parameters from F to C and vice-versa. take the input as integer value and if it is string convert it into the int and then calculate.",
+        "jsCode": "function celsiusToFahrenheit(celsius) {\n    return (celsius * 9/5) + 32;\n}\n\nfunction fahrenheitToCelsius(fahrenheit) {\n    return (fahrenheit - 32) * 5/9;\n}\n\n// Example usage:\nconst celsius = 25;\nconst fahrenheit = celsiusToFahrenheit(celsius);\nconst result = `Celsius: ${celsius}°C = Fahrenheit: ${fahrenheit}°F`;\n\nreturn result; // Ensure the output is a string\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        60
+      ],
+      "id": "6c081b05-aca0-457c-a684-2053f836c8a4",
+      "name": "Code Tool"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "prajwolramtel77@gmail.com",
+          "mode": "list",
+          "cachedResultName": "prajwolramtel77@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        780,
+        60
+      ],
+      "id": "961ca5fb-ab90-49ca-b52c-d05c9ad66236",
+      "name": "Eventmaker",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "Yto5xuWRe6rbwniP",
+          "name": "Google Calendar account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail-Send": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eventmaker": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ab66b9e3-fef3-43c7-a9ae-faf635f55a09",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b9e45dfed7608f95d06d518b847be28973d7905281a470ffe6766e5e20533f3c"
+  },
+  "id": "kAOvn5EAnPXOlirv",
+  "tags": []
+}
